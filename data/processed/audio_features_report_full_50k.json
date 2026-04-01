@@ -1,0 +1,199 @@
+{
+  "canonical_features": [
+    "danceability",
+    "energy",
+    "positiveness",
+    "tempo",
+    "loudness_db",
+    "speechiness",
+    "acousticness",
+    "instrumentalness",
+    "liveness",
+    "key",
+    "length"
+  ],
+  "batch_size": 256,
+  "splits": {
+    "train": {
+      "rows": 33448,
+      "feature_shape": [
+        33448,
+        11
+      ],
+      "missing_before_impute": {
+        "danceability": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "energy": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "positiveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "tempo": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "loudness_db": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "speechiness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "acousticness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "instrumentalness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "liveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "key": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "length": {
+          "missing": 0,
+          "missing_pct": 0.0
+        }
+      },
+      "label_column": "emotion",
+      "track_column": "song",
+      "artist_column": "Artist(s)"
+    },
+    "val": {
+      "rows": 7168,
+      "feature_shape": [
+        7168,
+        11
+      ],
+      "missing_before_impute": {
+        "danceability": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "energy": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "positiveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "tempo": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "loudness_db": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "speechiness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "acousticness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "instrumentalness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "liveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "key": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "length": {
+          "missing": 0,
+          "missing_pct": 0.0
+        }
+      },
+      "label_column": "emotion",
+      "track_column": "song",
+      "artist_column": "Artist(s)"
+    },
+    "test": {
+      "rows": 7168,
+      "feature_shape": [
+        7168,
+        11
+      ],
+      "missing_before_impute": {
+        "danceability": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "energy": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "positiveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "tempo": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "loudness_db": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "speechiness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "acousticness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "instrumentalness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "liveness": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "key": {
+          "missing": 0,
+          "missing_pct": 0.0
+        },
+        "length": {
+          "missing": 0,
+          "missing_pct": 0.0
+        }
+      },
+      "label_column": "emotion",
+      "track_column": "song",
+      "artist_column": "Artist(s)"
+    }
+  },
+  "feature_map": {
+    "danceability": "Danceability",
+    "energy": "Energy",
+    "positiveness": "Positiveness",
+    "tempo": "Tempo",
+    "loudness_db": "Loudness (db)",
+    "speechiness": "Speechiness",
+    "acousticness": "Acousticness",
+    "instrumentalness": "Instrumentalness",
+    "liveness": "Liveness",
+    "key": "Key",
+    "length": "Length"
+  }
+}

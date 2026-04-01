@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-03-31T15:57:24.462215",
+  "base_run": {
+    "rows_loaded": 50000,
+    "rows_after_dedup": 47784,
+    "validation_summary": {
+      "missing_columns": 5,
+      "duplicate_rows": 0
+    }
+  },
+  "phase_2_300k": {
+    "target_rows": 300000,
+    "scale_factor_vs_base": 6.0,
+    "execution_mode": "single machine + local Spark",
+    "expected_outputs": [
+      "data/raw/spotify_300k_raw.csv",
+      "data/processed/spotify_300k_processed.csv",
+      "data/processed/spotify_300k_train.csv",
+      "data/processed/spotify_300k_val.csv",
+      "data/processed/spotify_300k_test.csv"
+    ],
+    "acceptance_criteria": [
+      "Pipeline finishes without runtime errors",
+      "Deduplication report generated",
+      "Validation report generated",
+      "Class distribution remains usable for model training"
+    ]
+  },
+  "phase_3_900k": {
+    "target_rows": 900000,
+    "scale_factor_vs_base": 18.0,
+    "execution_mode": "distributed Spark recommended",
+    "minimum_recommendations": {
+      "driver_memory": "4g",
+      "executor_memory": "8g",
+      "shuffle_partitions": 200
+    },
+    "acceptance_criteria": [
+      "End-to-end processing completes",
+      "Storage footprint tracked and documented",
+      "Validation report shows no blocking data integrity issues"
+    ],
+    "fallback": "If resource limits are hit, process in deterministic chunks and merge outputs."
+  }
+}

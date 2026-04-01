@@ -1,0 +1,128 @@
+{
+  "raw_shape": [
+    50000,
+    39
+  ],
+  "deduplication": {
+    "rows_before": 50000,
+    "rows_after": 47784,
+    "duplicates_removed": 2216,
+    "duplicate_rate_pct": 4.432
+  },
+  "audio_features": {
+    "Danceability": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 58.7817,
+      "min": 6.0,
+      "max": 99.0
+    },
+    "Energy": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 62.751,
+      "min": 0.0,
+      "max": 100.0
+    },
+    "Positiveness": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 47.3698,
+      "min": 0.0,
+      "max": 99.0
+    },
+    "Tempo": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 120.7626,
+      "min": 31.0,
+      "max": 200.0
+    },
+    "Loudness (db)": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": -8.094,
+      "min": -48.4,
+      "max": 4.98
+    },
+    "Speechiness": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 11.5693,
+      "min": 2.0,
+      "max": 96.0
+    },
+    "Acousticness": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 25.8105,
+      "min": 0.0,
+      "max": 100.0
+    },
+    "Instrumentalness": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 7.4151,
+      "min": 0.0,
+      "max": 100.0
+    },
+    "Liveness": {
+      "present": 47784,
+      "missing": 0,
+      "missing_pct": 0.0,
+      "mean": 19.7702,
+      "min": 1.0,
+      "max": 100.0
+    }
+  },
+  "emotion_distribution": {
+    "True": {
+      "count": 2,
+      "percentage": 0.0
+    },
+    "anger": {
+      "count": 9324,
+      "percentage": 19.51
+    },
+    "fear": {
+      "count": 2480,
+      "percentage": 5.19
+    },
+    "joy": {
+      "count": 18188,
+      "percentage": 38.06
+    },
+    "love": {
+      "count": 2415,
+      "percentage": 5.05
+    },
+    "sadness": {
+      "count": 14908,
+      "percentage": 31.2
+    },
+    "surprise": {
+      "count": 467,
+      "percentage": 0.98
+    }
+  },
+  "missing_values_handling": {
+    "strategy": "drop",
+    "rows_dropped": 0
+  },
+  "splits": {
+    "train": 33448,
+    "val": 7168,
+    "test": 7168,
+    "train_pct": 70.0,
+    "val_pct": 15.0,
+    "test_pct": 15.0
+  }
+}

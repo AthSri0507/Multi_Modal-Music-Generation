@@ -1,0 +1,220 @@
+{
+  "missing_values": {
+    "song": {
+      "count": 1,
+      "percentage": 0.0
+    },
+    "Album": {
+      "count": 3,
+      "percentage": 0.01
+    },
+    "Time signature": {
+      "count": 2,
+      "percentage": 0.0
+    },
+    "Similar Song 2": {
+      "count": 1,
+      "percentage": 0.0
+    },
+    "Similar Song 3": {
+      "count": 1,
+      "percentage": 0.0
+    }
+  },
+  "duplicates": {
+    "count": 0,
+    "percentage": 0.0
+  },
+  "audio_feature_ranges": {
+    "Danceability": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 6.0,
+      "actual_max": 99.0,
+      "valid": true
+    },
+    "Energy": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 0.0,
+      "actual_max": 100.0,
+      "valid": true
+    },
+    "Positiveness": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 0.0,
+      "actual_max": 99.0,
+      "valid": true
+    },
+    "Tempo": {
+      "expected_range": [
+        0,
+        300
+      ],
+      "actual_min": 31.0,
+      "actual_max": 200.0,
+      "valid": true
+    },
+    "Speechiness": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 2.0,
+      "actual_max": 96.0,
+      "valid": true
+    },
+    "Acousticness": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 0.0,
+      "actual_max": 100.0,
+      "valid": true
+    },
+    "Instrumentalness": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 0.0,
+      "actual_max": 100.0,
+      "valid": true
+    },
+    "Liveness": {
+      "expected_range": [
+        0,
+        100
+      ],
+      "actual_min": 1.0,
+      "actual_max": 100.0,
+      "valid": true
+    }
+  },
+  "emotion_distribution": {
+    "joy": {
+      "count": 18188,
+      "percentage": 38.06
+    },
+    "sadness": {
+      "count": 14908,
+      "percentage": 31.2
+    },
+    "anger": {
+      "count": 9324,
+      "percentage": 19.51
+    },
+    "fear": {
+      "count": 2480,
+      "percentage": 5.19
+    },
+    "love": {
+      "count": 2415,
+      "percentage": 5.05
+    },
+    "surprise": {
+      "count": 467,
+      "percentage": 0.98
+    },
+    "True": {
+      "count": 2,
+      "percentage": 0.0
+    }
+  },
+  "high_correlations": [],
+  "summary": {
+    "total_rows": 47784,
+    "total_columns": 39,
+    "column_names": [
+      "Artist(s)",
+      "song",
+      "text",
+      "Length",
+      "emotion",
+      "Genre",
+      "Album",
+      "Release Date",
+      "Key",
+      "Tempo",
+      "Loudness (db)",
+      "Time signature",
+      "Explicit",
+      "Popularity",
+      "Energy",
+      "Danceability",
+      "Positiveness",
+      "Speechiness",
+      "Liveness",
+      "Acousticness",
+      "Instrumentalness",
+      "Good for Party",
+      "Good for Work/Study",
+      "Good for Relaxation/Meditation",
+      "Good for Exercise",
+      "Good for Running",
+      "Good for Yoga/Stretching",
+      "Good for Driving",
+      "Good for Social Gatherings",
+      "Good for Morning Routine",
+      "Similar Artist 1",
+      "Similar Song 1",
+      "Similarity Score 1",
+      "Similar Artist 2",
+      "Similar Song 2",
+      "Similarity Score 2",
+      "Similar Artist 3",
+      "Similar Song 3",
+      "Similarity Score 3"
+    ],
+    "dtypes": {
+      "Artist(s)": "object",
+      "song": "object",
+      "text": "object",
+      "Length": "object",
+      "emotion": "object",
+      "Genre": "object",
+      "Album": "object",
+      "Release Date": "object",
+      "Key": "object",
+      "Tempo": "int64",
+      "Loudness (db)": "float64",
+      "Time signature": "object",
+      "Explicit": "object",
+      "Popularity": "int64",
+      "Energy": "int64",
+      "Danceability": "int64",
+      "Positiveness": "int64",
+      "Speechiness": "int64",
+      "Liveness": "int64",
+      "Acousticness": "int64",
+      "Instrumentalness": "int64",
+      "Good for Party": "int64",
+      "Good for Work/Study": "int64",
+      "Good for Relaxation/Meditation": "int64",
+      "Good for Exercise": "int64",
+      "Good for Running": "int64",
+      "Good for Yoga/Stretching": "int64",
+      "Good for Driving": "int64",
+      "Good for Social Gatherings": "int64",
+      "Good for Morning Routine": "int64",
+      "Similar Artist 1": "object",
+      "Similar Song 1": "object",
+      "Similarity Score 1": "float64",
+      "Similar Artist 2": "object",
+      "Similar Song 2": "object",
+      "Similarity Score 2": "float64",
+      "Similar Artist 3": "object",
+      "Similar Song 3": "object",
+      "Similarity Score 3": "float64"
+    },
+    "memory_usage_mb": 193.01
+  }
+}

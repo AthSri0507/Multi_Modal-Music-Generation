@@ -1,0 +1,44 @@
+{
+  "model": "bert-base-uncased",
+  "device": "cpu",
+  "max_length": 128,
+  "batch_size": 32,
+  "splits": {
+    "train": {
+      "rows": 256,
+      "text_column": "text",
+      "track_column": "song",
+      "artist_column": "Artist(s)",
+      "label_column": "emotion",
+      "embedding_shape": [
+        256,
+        768
+      ],
+      "empty_text_rows": 0
+    },
+    "val": {
+      "rows": 256,
+      "text_column": "text",
+      "track_column": "song",
+      "artist_column": "Artist(s)",
+      "label_column": "emotion",
+      "embedding_shape": [
+        256,
+        768
+      ],
+      "empty_text_rows": 0
+    },
+    "test": {
+      "rows": 256,
+      "text_column": "text",
+      "track_column": "song",
+      "artist_column": "Artist(s)",
+      "label_column": "emotion",
+      "embedding_shape": [
+        256,
+        768
+      ],
+      "empty_text_rows": 0
+    }
+  }
+}

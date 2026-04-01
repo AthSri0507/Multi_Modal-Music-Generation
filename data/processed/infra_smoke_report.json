@@ -1,0 +1,34 @@
+{
+  "timestamp": "2026-03-31T15:56:48.001751",
+  "checks": {
+    "spark": {
+      "ok": true,
+      "details": {
+        "master": "local[*]",
+        "app_name": "music_gen_infra_smoke",
+        "count_check": 1000
+      }
+    },
+    "hdf5": {
+      "ok": true,
+      "details": {
+        "file": "C:\\Users\\Atharva Srivastava\\Downloads\\music_gen\\data\\processed\\storage_smoke.h5",
+        "roundtrip_values": [
+          1.0,
+          2.0,
+          3.0
+        ]
+      }
+    },
+    "mongodb": {
+      "ok": true,
+      "details": {
+        "database": "music_emotion_db",
+        "collection": "songs",
+        "index": "artist_1_track_name_1",
+        "insert_delete_ok": true
+      }
+    }
+  },
+  "all_ok": true
+}
