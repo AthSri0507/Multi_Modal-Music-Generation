@@ -171,6 +171,37 @@ PHASE_2_SAMPLE_SIZE = 300000  # Expand to 300k
 PHASE_3_SAMPLE_SIZE = 900000  # Full dataset
 
 # ============================================================================
+# MILESTONE 4: Music Generation Configuration (pre-training foundation)
+# ============================================================================
+
+# Dataset artifact produced by scripts/m4_prepare_music_data.py
+M4_MUSIC_NPZ_PATH = PROCESSED_DATA_DIR / "m4_music_sequences.npz"
+
+# MIDI representation defaults: [pitch, velocity, duration, delta_time]
+M4_MIDI_SEQ_LEN = 120
+M4_MIDI_FEATURE_DIM = 4
+M4_MIDI_MAX_DURATION_BEATS = 8.0
+M4_MIDI_MAX_DELTA_BEATS = 8.0
+
+# cGAN architecture defaults
+M4_GAN_NUM_EMOTIONS = 8
+M4_GAN_NOISE_DIM = 100
+M4_GAN_EMOTION_EMBED_DIM_G = 8
+M4_GAN_EMOTION_EMBED_DIM_D = 32
+M4_GAN_GENERATOR_HIDDEN_DIMS = (256, 512, 1024)
+M4_GAN_DISCRIMINATOR_HIDDEN_DIMS = (512, 256, 128)
+M4_GAN_USE_SPECTRAL_NORM = True
+
+# Future training defaults (kept here for reproducible startup values)
+M4_GAN_BATCH_SIZE = 64
+M4_GAN_G_LR = 1e-4
+M4_GAN_D_LR = 2e-4
+M4_GAN_BETA1 = 0.5
+M4_GAN_BETA2 = 0.999
+M4_GAN_R1_WEIGHT = 10.0
+M4_GAN_AUX_CE_WEIGHT = 0.25
+
+# ============================================================================
 # Spark Configuration (optional for Phase 1, required for Phases 2-3)
 # ============================================================================
 

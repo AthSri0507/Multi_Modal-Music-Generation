@@ -23,6 +23,7 @@ pyspark>=3.2.0
 # Audio Processing (for future model stages)
 librosa>=0.9.0
 essentia>=2.1.0
+pretty_midi>=0.2.10
 
 # Development & Testing
 pytest>=6.0.0
@@ -36,3 +37,4 @@ h5py>=3.7.0
 pyyaml>=5.4.0
 python-dotenv>=0.19.0
 tqdm>=4.60.0
+onnxscript>=0.1.0
