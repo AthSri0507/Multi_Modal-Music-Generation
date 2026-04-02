@@ -37,10 +37,10 @@ SPOTIFY_VAL_PATH = PROCESSED_DATA_DIR / "spotify_50k_val.csv"
 SPOTIFY_TEST_PATH = PROCESSED_DATA_DIR / "spotify_50k_test.csv"
 
 # HDF5 Storage Configuration
-HDF5_EMBEDDINGS_PATH = PROCESSED_DATA_DIR / "embeddings.h5"
-HDF5_FEATURES_PATH = PROCESSED_DATA_DIR / "audio_features.h5"
-TEXT_EMBEDDINGS_REPORT_PATH = PROCESSED_DATA_DIR / "text_embeddings_report.json"
-AUDIO_FEATURES_REPORT_PATH = PROCESSED_DATA_DIR / "audio_features_report.json"
+HDF5_EMBEDDINGS_PATH = PROCESSED_DATA_DIR / "embeddings_clean_50k.h5"
+HDF5_FEATURES_PATH = PROCESSED_DATA_DIR / "audio_features_clean_50k.h5"
+TEXT_EMBEDDINGS_REPORT_PATH = PROCESSED_DATA_DIR / "text_embeddings_report_clean_50k.json"
+AUDIO_FEATURES_REPORT_PATH = PROCESSED_DATA_DIR / "audio_features_report_clean_50k.json"
 
 # Audio Features to Extract
 AUDIO_FEATURES = [
@@ -104,6 +104,43 @@ EMOTION_CLASSES = [
     "surprise",
     "disgust",
     "neutral"
+]
+
+# Phase 1 canonical class set (clean 6-class setup used for training)
+PHASE_1_CANONICAL_EMOTIONS = [
+    "anger",
+    "fear",
+    "joy",
+    "love",
+    "sadness",
+    "surprise",
+]
+
+# Phase 1 reduced 4-class set (dropping fear F1=0.005 and surprise F1=0.067)
+PHASE_1_4CLASS_EMOTIONS = [
+    "anger",
+    "joy",
+    "love",
+    "sadness",
+]
+
+# Keep only columns required for the current multimodal task in processed splits.
+PHASE_1_KEEP_COLUMNS = [
+    "Artist(s)",
+    "song",
+    "text",
+    "emotion",
+    "Length",
+    "Key",
+    "Tempo",
+    "Loudness (db)",
+    "Energy",
+    "Danceability",
+    "Positiveness",
+    "Speechiness",
+    "Liveness",
+    "Acousticness",
+    "Instrumentalness",
 ]
 
 # Data Split Configuration

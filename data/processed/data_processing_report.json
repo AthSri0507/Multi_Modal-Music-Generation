@@ -9,85 +9,146 @@
     "duplicates_removed": 2216,
     "duplicate_rate_pct": 4.432
   },
+  "label_cleaning": {
+    "strategy": "drop_non_canonical",
+    "emotion_column": "emotion",
+    "allowed_labels": [
+      "anger",
+      "fear",
+      "joy",
+      "love",
+      "sadness",
+      "surprise"
+    ],
+    "rows_before": 47784,
+    "rows_after": 47782,
+    "rows_dropped": 2,
+    "dropped_label_counts": {
+      "true": 2
+    }
+  },
+  "column_filtering": {
+    "kept_columns": [
+      "Artist(s)",
+      "song",
+      "text",
+      "emotion",
+      "Length",
+      "Key",
+      "Tempo",
+      "Loudness (db)",
+      "Energy",
+      "Danceability",
+      "Positiveness",
+      "Speechiness",
+      "Liveness",
+      "Acousticness",
+      "Instrumentalness"
+    ],
+    "dropped_columns": [
+      "Genre",
+      "Album",
+      "Release Date",
+      "Time signature",
+      "Explicit",
+      "Popularity",
+      "Good for Party",
+      "Good for Work/Study",
+      "Good for Relaxation/Meditation",
+      "Good for Exercise",
+      "Good for Running",
+      "Good for Yoga/Stretching",
+      "Good for Driving",
+      "Good for Social Gatherings",
+      "Good for Morning Routine",
+      "Similar Artist 1",
+      "Similar Song 1",
+      "Similarity Score 1",
+      "Similar Artist 2",
+      "Similar Song 2",
+      "Similarity Score 2",
+      "Similar Artist 3",
+      "Similar Song 3",
+      "Similarity Score 3"
+    ],
+    "kept_count": 15,
+    "dropped_count": 24
+  },
   "audio_features": {
     "Danceability": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 58.7817,
+      "mean": 58.7822,
       "min": 6.0,
       "max": 99.0
     },
     "Energy": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 62.751,
+      "mean": 62.7505,
       "min": 0.0,
       "max": 100.0
     },
     "Positiveness": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 47.3698,
+      "mean": 47.3692,
       "min": 0.0,
       "max": 99.0
     },
     "Tempo": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 120.7626,
+      "mean": 120.7615,
       "min": 31.0,
       "max": 200.0
     },
     "Loudness (db)": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": -8.094,
+      "mean": -8.0941,
       "min": -48.4,
       "max": 4.98
     },
     "Speechiness": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 11.5693,
+      "mean": 11.5696,
       "min": 2.0,
       "max": 96.0
     },
     "Acousticness": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 25.8105,
+      "mean": 25.8096,
       "min": 0.0,
       "max": 100.0
     },
     "Instrumentalness": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 7.4151,
+      "mean": 7.4154,
       "min": 0.0,
       "max": 100.0
     },
     "Liveness": {
-      "present": 47784,
+      "present": 47782,
       "missing": 0,
       "missing_pct": 0.0,
-      "mean": 19.7702,
+      "mean": 19.7699,
       "min": 1.0,
       "max": 100.0
     }
   },
   "emotion_distribution": {
-    "True": {
-      "count": 2,
-      "percentage": 0.0
-    },
     "anger": {
       "count": 9324,
       "percentage": 19.51
@@ -115,10 +176,10 @@
   },
   "missing_values_handling": {
     "strategy": "drop",
-    "rows_dropped": 0
+    "rows_dropped": 1
   },
   "splits": {
-    "train": 33448,
+    "train": 33445,
     "val": 7168,
     "test": 7168,
     "train_pct": 70.0,

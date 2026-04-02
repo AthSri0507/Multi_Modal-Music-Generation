@@ -61,3 +61,5 @@ run_pipeline.py
 scripts/
 notebooks/
 .coverage
+artifacts/
+data/

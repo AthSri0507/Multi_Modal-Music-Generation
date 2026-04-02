@@ -1,26 +1,5 @@
 {
-  "missing_values": {
-    "song": {
-      "count": 1,
-      "percentage": 0.0
-    },
-    "Album": {
-      "count": 3,
-      "percentage": 0.01
-    },
-    "Time signature": {
-      "count": 2,
-      "percentage": 0.0
-    },
-    "Similar Song 2": {
-      "count": 1,
-      "percentage": 0.0
-    },
-    "Similar Song 3": {
-      "count": 1,
-      "percentage": 0.0
-    }
-  },
+  "missing_values": {},
   "duplicates": {
     "count": 0,
     "percentage": 0.0
@@ -102,10 +81,10 @@
   "emotion_distribution": {
     "joy": {
       "count": 18188,
-      "percentage": 38.06
+      "percentage": 38.07
     },
     "sadness": {
-      "count": 14908,
+      "count": 14907,
       "percentage": 31.2
     },
     "anger": {
@@ -123,98 +102,46 @@
     "surprise": {
       "count": 467,
       "percentage": 0.98
-    },
-    "True": {
-      "count": 2,
-      "percentage": 0.0
     }
   },
   "high_correlations": [],
   "summary": {
-    "total_rows": 47784,
-    "total_columns": 39,
+    "total_rows": 47781,
+    "total_columns": 15,
     "column_names": [
       "Artist(s)",
       "song",
       "text",
-      "Length",
       "emotion",
-      "Genre",
-      "Album",
-      "Release Date",
+      "Length",
       "Key",
       "Tempo",
       "Loudness (db)",
-      "Time signature",
-      "Explicit",
-      "Popularity",
       "Energy",
       "Danceability",
       "Positiveness",
       "Speechiness",
       "Liveness",
       "Acousticness",
-      "Instrumentalness",
-      "Good for Party",
-      "Good for Work/Study",
-      "Good for Relaxation/Meditation",
-      "Good for Exercise",
-      "Good for Running",
-      "Good for Yoga/Stretching",
-      "Good for Driving",
-      "Good for Social Gatherings",
-      "Good for Morning Routine",
-      "Similar Artist 1",
-      "Similar Song 1",
-      "Similarity Score 1",
-      "Similar Artist 2",
-      "Similar Song 2",
-      "Similarity Score 2",
-      "Similar Artist 3",
-      "Similar Song 3",
-      "Similarity Score 3"
+      "Instrumentalness"
     ],
     "dtypes": {
       "Artist(s)": "object",
       "song": "object",
       "text": "object",
-      "Length": "object",
       "emotion": "object",
-      "Genre": "object",
-      "Album": "object",
-      "Release Date": "object",
+      "Length": "object",
       "Key": "object",
       "Tempo": "int64",
       "Loudness (db)": "float64",
-      "Time signature": "object",
-      "Explicit": "object",
-      "Popularity": "int64",
       "Energy": "int64",
       "Danceability": "int64",
       "Positiveness": "int64",
       "Speechiness": "int64",
       "Liveness": "int64",
       "Acousticness": "int64",
-      "Instrumentalness": "int64",
-      "Good for Party": "int64",
-      "Good for Work/Study": "int64",
-      "Good for Relaxation/Meditation": "int64",
-      "Good for Exercise": "int64",
-      "Good for Running": "int64",
-      "Good for Yoga/Stretching": "int64",
-      "Good for Driving": "int64",
-      "Good for Social Gatherings": "int64",
-      "Good for Morning Routine": "int64",
-      "Similar Artist 1": "object",
-      "Similar Song 1": "object",
-      "Similarity Score 1": "float64",
-      "Similar Artist 2": "object",
-      "Similar Song 2": "object",
-      "Similarity Score 2": "float64",
-      "Similar Artist 3": "object",
-      "Similar Song 3": "object",
-      "Similarity Score 3": "float64"
+      "Instrumentalness": "int64"
     },
-    "memory_usage_mb": 193.01
+    "memory_usage_mb": 153.22
   }
 }

@@ -21,6 +21,8 @@ from config.config import (
     SPOTIFY_VAL_PATH,
     SPOTIFY_TEST_PATH,
     AUDIO_FEATURES,
+    PHASE_1_CANONICAL_EMOTIONS,
+    PHASE_1_KEEP_COLUMNS,
     EMOTION_CLASSES,
     TRAIN_RATIO,
     VAL_RATIO,
@@ -184,6 +186,88 @@ class SpotifyDataProcessor:
         
         self.report["emotion_distribution"] = emotion_stats
         return emotion_stats
+
+    def clean_emotion_labels(self, allowed_labels=None):
+        """Normalize emotion labels and drop rows outside the canonical Phase-1 class set."""
+        logger.info("Cleaning emotion labels...")
+
+        emotion_col = self.find_column(["emotion", "class", "label", "emotion_class"])
+        if not emotion_col:
+            logger.warning("Could not find emotion column; skipping label cleaning")
+            self.report["label_cleaning"] = {
+                "status": "skipped",
+                "reason": "emotion column not found",
+            }
+            return self.processed_data
+
+        if allowed_labels is None:
+            allowed_labels = PHASE_1_CANONICAL_EMOTIONS
+
+        allowed = {str(lbl).strip().lower() for lbl in allowed_labels}
+        before = len(self.processed_data)
+
+        labels_norm = self.processed_data[emotion_col].astype(str).str.strip().str.lower()
+        keep_mask = labels_norm.isin(allowed)
+        dropped = int((~keep_mask).sum())
+
+        if dropped > 0:
+            drop_counts = labels_norm[~keep_mask].value_counts().to_dict()
+            logger.info(
+                "Dropping %d rows with non-canonical labels: %s",
+                dropped,
+                drop_counts,
+            )
+        else:
+            drop_counts = {}
+
+        self.processed_data = self.processed_data.loc[keep_mask].copy()
+        self.processed_data[emotion_col] = labels_norm[keep_mask]
+        after = len(self.processed_data)
+
+        self.report["label_cleaning"] = {
+            "strategy": "drop_non_canonical",
+            "emotion_column": emotion_col,
+            "allowed_labels": sorted(allowed),
+            "rows_before": int(before),
+            "rows_after": int(after),
+            "rows_dropped": int(dropped),
+            "dropped_label_counts": {str(k): int(v) for k, v in drop_counts.items()},
+        }
+        logger.info("After label cleaning shape: %s", self.processed_data.shape)
+        return self.processed_data
+
+    def filter_relevant_columns(self, keep_columns=None):
+        """Keep only columns relevant to the current multimodal training task."""
+        logger.info("Filtering to task-relevant columns...")
+
+        if keep_columns is None:
+            keep_columns = PHASE_1_KEEP_COLUMNS
+
+        available_keep = [c for c in keep_columns if c in self.processed_data.columns]
+        dropped = [c for c in self.processed_data.columns if c not in available_keep]
+
+        if not available_keep:
+            logger.warning("No configured keep-columns found in dataset. Skipping column filtering.")
+            self.report["column_filtering"] = {
+                "status": "skipped",
+                "reason": "no keep columns matched",
+            }
+            return self.processed_data
+
+        self.processed_data = self.processed_data[available_keep].copy()
+        logger.info(
+            "Column filtering complete: kept=%d dropped=%d",
+            len(available_keep),
+            len(dropped),
+        )
+
+        self.report["column_filtering"] = {
+            "kept_columns": available_keep,
+            "dropped_columns": dropped,
+            "kept_count": int(len(available_keep)),
+            "dropped_count": int(len(dropped)),
+        }
+        return self.processed_data
     
     def handle_missing_values(self, strategy="drop"):
         """Handle missing values"""
@@ -196,8 +280,10 @@ class SpotifyDataProcessor:
                 if feat in self.processed_data.columns:
                     self.processed_data[feat] = self.to_numeric_series(self.processed_data[feat])
 
-            # Drop rows with missing audio features or emotion
+            # Drop rows with missing audio features/emotion and missing core identifiers.
             drop_cols = [col for col in (AUDIO_FEATURES + ["emotion"]) if col in self.processed_data.columns]
+            if "song" in self.processed_data.columns:
+                drop_cols.append("song")
             self.processed_data = self.processed_data.dropna(subset=drop_cols)
             after = len(self.processed_data)
             removed = before - after
@@ -289,6 +375,12 @@ class SpotifyDataProcessor:
         
         # Deduplicate
         self.deduplicate()
+
+        # Clean labels to canonical Phase-1 6-class set before any validation/splitting.
+        self.clean_emotion_labels()
+
+        # Keep only model-relevant fields to avoid carrying unrelated metadata.
+        self.filter_relevant_columns()
         
         # Validate
         self.validate_audio_features()

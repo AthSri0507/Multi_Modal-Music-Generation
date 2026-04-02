@@ -30,7 +30,7 @@ The codebase currently includes data ingestion, cleaning, validation, text embed
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/AthSri0507/Multi_Modal-Music-Generation
 cd music_gen
 ```
 
