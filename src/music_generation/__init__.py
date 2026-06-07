@@ -1,27 +1,35 @@
-"""Music generation package for Milestone 4 pre-training foundation."""
+"""Music generation package.
 
-from .dataset import EmotionConditionedMusicDataset, MusicLabelEncoder
-from .losses import (
-    discriminator_hinge_loss,
-    generator_hinge_loss,
-    r1_regularization,
-)
-from .midi_representation import MidiRepresentationConfig, MidiSequenceConverter
-from .models import MusicDiscriminator, MusicGenerator, MusicGanOutput, build_generator
-from .postprocess import MidiPostprocessConfig, MidiPostprocessor
+Re-exports are **lazy** (PEP 562): importing this package must not eagerly pull the
+v1 GAN / MIDI training modules (torch, pretty_midi, ...), so the serving app
+(text-to-audio) stays light and importable with only `requirements-serve.txt`. The
+public names below still resolve on first access for code that wants them.
+"""
 
-__all__ = [
-    "EmotionConditionedMusicDataset",
-    "MusicDiscriminator",
-    "MusicGanOutput",
-    "MusicGenerator",
-    "MidiRepresentationConfig",
-    "MidiSequenceConverter",
-    "MidiPostprocessConfig",
-    "MidiPostprocessor",
-    "MusicLabelEncoder",
-    "build_generator",
-    "discriminator_hinge_loss",
-    "generator_hinge_loss",
-    "r1_regularization",
-]
+import importlib
+
+# public name -> submodule that defines it
+_LAZY = {
+    "EmotionConditionedMusicDataset": "dataset",
+    "MusicLabelEncoder": "dataset",
+    "discriminator_hinge_loss": "losses",
+    "generator_hinge_loss": "losses",
+    "r1_regularization": "losses",
+    "MidiRepresentationConfig": "midi_representation",
+    "MidiSequenceConverter": "midi_representation",
+    "MusicDiscriminator": "models",
+    "MusicGenerator": "models",
+    "MusicGanOutput": "models",
+    "build_generator": "models",
+    "MidiPostprocessConfig": "postprocess",
+    "MidiPostprocessor": "postprocess",
+}
+
+__all__ = list(_LAZY.keys())
+
+
+def __getattr__(name: str):  # PEP 562
+    if name in _LAZY:
+        module = importlib.import_module(f".{_LAZY[name]}", __name__)
+        return getattr(module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
