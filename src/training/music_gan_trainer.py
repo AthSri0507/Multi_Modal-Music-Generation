@@ -33,7 +33,10 @@ from src.config.config import (
     M4_GAN_R1_WEIGHT,
     M4_GAN_USE_SPECTRAL_NORM,
 )
+from src.music_generation.augmentation import augment_music_batch
+from src.music_generation.control_schema import MusicControlSchema
 from src.music_generation.dataset import EmotionConditionedMusicDataset, MusicLabelEncoder
+from src.music_generation.delta_dataset import DeltaEmotionConditionedMusicDataset
 from src.music_generation.losses import (
     discriminator_hinge_loss,
     generator_hinge_loss,
@@ -49,8 +52,8 @@ if not logger.handlers:
 
 @dataclass
 class MusicGanTrainerConfig:
-    train_npz: str
-    val_npz: str | None = None
+    train_delta: str
+    val_delta: str | None = None
     output_dir: str = "artifacts/m4_gan"
     device: str = "auto"
     seed: int = 42
@@ -85,6 +88,14 @@ class MusicGanTrainerConfig:
     sample_per_emotion: int = 16
     log_every_steps: int = 50
 
+    control_embedding_dim: int = 16
+    diversity_weight: float = 0.05
+    pitch_augment_prob: float = 0.5
+    pitch_shift_range: int = 5
+    velocity_jitter: float = 0.02
+    warmstart_checkpoint: str | None = None
+    pretrain_unconditional: bool = False
+
     early_stopping_patience: int = 12
     early_stopping_min_delta: float = 1e-3
 
@@ -106,6 +117,20 @@ class _ArrayMusicDataset(Dataset):
         return x, y
 
 
+class _UnconditionalDataset(Dataset):
+    """Adapter that removes class information for unconditional pretraining."""
+
+    def __init__(self, base_dataset: Dataset) -> None:
+        self.base_dataset = base_dataset
+
+    def __len__(self) -> int:
+        return len(self.base_dataset)
+
+    def __getitem__(self, idx: int):
+        x, _ = self.base_dataset[idx]
+        return x, torch.tensor(0, dtype=torch.long)
+
+
 def _seed_everything(seed: int) -> None:
     random.seed(seed)
     np.random.seed(seed)
@@ -121,11 +146,11 @@ def _pick_device(value: str) -> torch.device:
 
 
 def _build_datasets(cfg: MusicGanTrainerConfig) -> tuple[Dataset, Dataset, MusicLabelEncoder]:
-    train_ds_full = EmotionConditionedMusicDataset(cfg.train_npz)
+    train_ds_full = DeltaEmotionConditionedMusicDataset(cfg.train_delta)
     encoder = train_ds_full.label_encoder
 
-    if cfg.val_npz:
-        val_ds = EmotionConditionedMusicDataset(cfg.val_npz, label_encoder=encoder)
+    if cfg.val_delta:
+        val_ds = DeltaEmotionConditionedMusicDataset(cfg.val_delta, label_encoder=encoder)
         return train_ds_full, val_ds, encoder
 
     labels = train_ds_full.labels
@@ -153,13 +178,57 @@ def _build_loader(dataset: Dataset, batch_size: int, shuffle: bool) -> DataLoade
         shuffle=shuffle,
         num_workers=0,
         pin_memory=torch.cuda.is_available(),
-        drop_last=False,
+        # Training batches can end with size 1, which breaks BatchNorm layers.
+        drop_last=shuffle,
+    )
+
+
+def _warmstart_models(
+    cfg: MusicGanTrainerConfig,
+    generator: MusicGenerator,
+    discriminator: MusicDiscriminator,
+) -> None:
+    if not cfg.warmstart_checkpoint:
+        return
+
+    ckpt_path = Path(cfg.warmstart_checkpoint)
+    if not ckpt_path.exists():
+        raise FileNotFoundError(f"Warmstart checkpoint not found: {ckpt_path}")
+
+    payload = torch.load(ckpt_path, map_location="cpu")
+    g_src = payload.get("generator_state_dict", {})
+    d_src = payload.get("discriminator_state_dict", {})
+
+    def _copy_compatible(dst_model: torch.nn.Module, src_state: dict[str, torch.Tensor]) -> tuple[int, int]:
+        dst_state = dst_model.state_dict()
+        loaded = 0
+        skipped = 0
+        for key, value in src_state.items():
+            if key in dst_state and dst_state[key].shape == value.shape:
+                dst_state[key] = value
+                loaded += 1
+            else:
+                skipped += 1
+        dst_model.load_state_dict(dst_state)
+        return loaded, skipped
+
+    g_loaded, g_skipped = _copy_compatible(generator, g_src)
+    d_loaded, d_skipped = _copy_compatible(discriminator, d_src)
+
+    logger.info(
+        "Warmstart loaded from %s | G loaded=%d skipped=%d | D loaded=%d skipped=%d",
+        ckpt_path,
+        g_loaded,
+        g_skipped,
+        d_loaded,
+        d_skipped,
     )
 
 
 def _emotion_consistency_and_diversity(
     generator: MusicGenerator,
     discriminator: MusicDiscriminator,
+    control_schema: MusicControlSchema,
     device: torch.device,
     num_emotions: int,
     noise_dim: int,
@@ -174,14 +243,16 @@ def _emotion_consistency_and_diversity(
         for emotion_id in range(num_emotions):
             y = torch.full((samples_per_emotion,), emotion_id, device=device, dtype=torch.long)
             z = torch.randn(samples_per_emotion, noise_dim, device=device)
-            fake = generator(z, y)
+            controls = control_schema.batch_from_emotions(y, device=device)
+            fake = generator(z, y, controls)
             vectors.append(fake)
             labels.append(y)
 
         fake_all = torch.cat(vectors, dim=0)
         y_all = torch.cat(labels, dim=0)
+        control_all = control_schema.batch_from_emotions(y_all, device=device)
 
-        out = discriminator(fake_all, y_all)
+        out = discriminator(fake_all, y_all, control_all)
         pred = torch.argmax(out.emotion_logits, dim=1)
         consistency = (pred == y_all).float().mean().item()
 
@@ -203,6 +274,7 @@ def _emotion_consistency_and_diversity(
 
 def _save_generated_samples(
     generator: MusicGenerator,
+    control_schema: MusicControlSchema,
     device: torch.device,
     num_emotions: int,
     noise_dim: int,
@@ -217,7 +289,8 @@ def _save_generated_samples(
         for emotion_id in range(num_emotions):
             y = torch.full((samples_per_emotion,), emotion_id, device=device, dtype=torch.long)
             z = torch.randn(samples_per_emotion, noise_dim, device=device)
-            fake = generator(z, y)
+            controls = control_schema.batch_from_emotions(y, device=device)
+            fake = generator(z, y, controls)
             all_vectors.append(fake.cpu().numpy().astype(np.float32))
             all_labels.extend([emotion_id] * samples_per_emotion)
 
@@ -240,8 +313,14 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
         p.mkdir(parents=True, exist_ok=True)
 
     train_ds, val_ds, label_encoder = _build_datasets(cfg)
+    unconditional_mode = cfg.pretrain_unconditional or cfg.aux_ce_weight <= 0
+    if unconditional_mode:
+        train_ds = _UnconditionalDataset(train_ds)
+        val_ds = _UnconditionalDataset(val_ds)
+        label_encoder = MusicLabelEncoder({"pretrain": 0})
     train_loader = _build_loader(train_ds, batch_size=cfg.batch_size, shuffle=True)
     val_loader = _build_loader(val_ds, batch_size=cfg.batch_size, shuffle=False)
+    control_schema = MusicControlSchema.from_label_encoder(label_encoder.label_to_id)
 
     # Infer vector dim from a sample batch.
     x0, _ = next(iter(train_loader))
@@ -255,12 +334,15 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
             num_emotions_from_data,
         )
     num_emotions = num_emotions_from_data
+    use_aux_objective = not unconditional_mode and cfg.aux_ce_weight > 0
 
     G = build_generator(
         variant=cfg.generator_variant,
         noise_dim=cfg.noise_dim,
         num_emotions=num_emotions,
         emotion_embedding_dim=cfg.g_emotion_embed_dim,
+        control_dim=control_schema.control_dim,
+        control_embedding_dim=cfg.control_embedding_dim,
         output_dim=vector_dim,
         hidden_dims=cfg.g_hidden_dims,
         seq_len=cfg.seq_len,
@@ -271,9 +353,13 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
         input_dim=vector_dim,
         num_emotions=num_emotions,
         emotion_embedding_dim=cfg.d_emotion_embed_dim,
+        control_dim=control_schema.control_dim,
+        control_embedding_dim=cfg.control_embedding_dim,
         hidden_dims=cfg.d_hidden_dims,
         spectral_norm=cfg.use_spectral_norm,
     ).to(device)
+
+    _warmstart_models(cfg, G, D)
 
     g_opt = Adam(G.parameters(), lr=cfg.g_lr, betas=(cfg.beta1, cfg.beta2))
     d_opt = Adam(D.parameters(), lr=cfg.d_lr, betas=(cfg.beta1, cfg.beta2))
@@ -312,22 +398,34 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
             real_y = real_y.to(device)
             bsz = real_x.shape[0]
 
+            real_x = augment_music_batch(
+                real_x,
+                pitch_shift_range=cfg.pitch_shift_range,
+                velocity_jitter=cfg.velocity_jitter,
+                augment_prob=cfg.pitch_augment_prob,
+            )
+            real_controls = control_schema.batch_from_emotions(real_y, device=device)
+
             # Discriminator update
             y_fake = torch.randint(low=0, high=num_emotions, size=(bsz,), device=device)
             z = torch.randn(bsz, cfg.noise_dim, device=device)
-            fake_x = G(z, y_fake)
+            fake_controls = control_schema.batch_from_emotions(y_fake, device=device)
+            fake_x = G(z, y_fake, fake_controls)
 
-            real_out = D(real_x, real_y)
-            fake_out = D(fake_x.detach(), y_fake)
+            real_out = D(real_x, real_y, real_controls)
+            fake_out = D(fake_x.detach(), y_fake, fake_controls)
 
             d_adv = discriminator_hinge_loss(real_out.adv_logits, fake_out.adv_logits)
-            d_aux = F.cross_entropy(real_out.emotion_logits, real_y)
-            d_loss = d_adv + cfg.aux_ce_weight * d_aux
+            d_aux = torch.tensor(0.0, device=device)
+            d_loss = d_adv
+            if use_aux_objective:
+                d_aux = F.cross_entropy(real_out.emotion_logits, real_y)
+                d_loss = d_loss + cfg.aux_ce_weight * d_aux
 
             d_r1 = torch.tensor(0.0, device=device)
             if cfg.r1_weight > 0 and (global_step % max(1, cfg.r1_interval) == 0):
                 real_x_gp = real_x.detach().clone().requires_grad_(True)
-                real_out_gp = D(real_x_gp, real_y)
+                real_out_gp = D(real_x_gp, real_y, real_controls)
                 d_r1 = r1_regularization(real_x_gp, real_out_gp.adv_logits)
                 d_loss = d_loss + cfg.r1_weight * d_r1
 
@@ -346,12 +444,16 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
             if global_step % max(1, cfg.n_critic) == 0:
                 y_gen = torch.randint(low=0, high=num_emotions, size=(bsz,), device=device)
                 z = torch.randn(bsz, cfg.noise_dim, device=device)
-                gen_x = G(z, y_gen)
-                gen_out = D(gen_x, y_gen)
+                gen_controls = control_schema.batch_from_emotions(y_gen, device=device)
+                gen_x = G(z, y_gen, gen_controls)
+                gen_out = D(gen_x, y_gen, gen_controls)
 
                 g_adv = generator_hinge_loss(gen_out.adv_logits)
-                g_aux = F.cross_entropy(gen_out.emotion_logits, y_gen)
-                g_loss = g_adv + cfg.aux_ce_weight * g_aux
+                g_aux = torch.tensor(0.0, device=device)
+                diversity_bonus = gen_x.std(dim=0).mean()
+                if use_aux_objective:
+                    g_aux = F.cross_entropy(gen_out.emotion_logits, y_gen)
+                g_loss = g_adv + cfg.aux_ce_weight * g_aux - cfg.diversity_weight * diversity_bonus
 
                 g_opt.zero_grad(set_to_none=True)
                 g_loss.backward()
@@ -379,6 +481,7 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
         val_consistency = _emotion_consistency_and_diversity(
             generator=G,
             discriminator=D,
+            control_schema=control_schema,
             device=device,
             num_emotions=num_emotions,
             noise_dim=cfg.noise_dim,
@@ -386,25 +489,34 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
         )
 
         # Lightweight real-label validation through discriminator auxiliary head.
-        D.eval()
-        with torch.no_grad():
-            aux_correct = 0
-            aux_total = 0
-            for x_val, y_val in val_loader:
-                x_val = x_val.to(device)
-                y_val = y_val.to(device)
-                out = D(x_val, y_val)
-                pred = torch.argmax(out.emotion_logits, dim=1)
-                aux_correct += int((pred == y_val).sum().item())
-                aux_total += int(y_val.numel())
-            val_aux_acc = aux_correct / max(1, aux_total)
+        val_aux_acc = 0.0
+        if use_aux_objective:
+            D.eval()
+            with torch.no_grad():
+                aux_correct = 0
+                aux_total = 0
+                for x_val, y_val in val_loader:
+                    x_val = x_val.to(device)
+                    y_val = y_val.to(device)
+                    out = D(x_val, y_val)
+                    pred = torch.argmax(out.emotion_logits, dim=1)
+                    aux_correct += int((pred == y_val).sum().item())
+                    aux_total += int(y_val.numel())
+                val_aux_acc = aux_correct / max(1, aux_total)
 
         # Composite score to select best checkpoint.
-        val_score = (
-            1.0 * val_consistency["emotion_consistency"]
-            + 0.25 * val_consistency["mean_pairwise_cosine_distance"]
-            + 0.25 * val_aux_acc
-        )
+        if use_aux_objective:
+            val_score = (
+                1.0 * val_consistency["emotion_consistency"]
+                + 0.25 * val_consistency["mean_pairwise_cosine_distance"]
+                + 0.25 * val_aux_acc
+            )
+        else:
+            # In unconditional mode, select checkpoints by generative diversity proxies only.
+            val_score = (
+                1.0 * val_consistency["mean_pairwise_cosine_distance"]
+                + 0.5 * val_consistency["diversity_std"]
+            )
 
         row: Dict[str, float | int] = {
             "epoch": epoch,
@@ -436,6 +548,7 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
             sample_path = samples_dir / f"epoch_{epoch:03d}_samples.npz"
             _save_generated_samples(
                 generator=G,
+                control_schema=control_schema,
                 device=device,
                 num_emotions=num_emotions,
                 noise_dim=cfg.noise_dim,
@@ -453,6 +566,7 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
                 "g_optimizer_state_dict": g_opt.state_dict(),
                 "d_optimizer_state_dict": d_opt.state_dict(),
                 "label_to_id": label_encoder.label_to_id,
+                "control_schema": control_schema.to_dict(),
                 "vector_dim": vector_dim,
                 "config": asdict(cfg),
                 "history": history,
@@ -474,6 +588,7 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
                     "g_optimizer_state_dict": g_opt.state_dict(),
                     "d_optimizer_state_dict": d_opt.state_dict(),
                     "label_to_id": label_encoder.label_to_id,
+                    "control_schema": control_schema.to_dict(),
                     "vector_dim": vector_dim,
                     "best_val_score": best_score,
                     "config": asdict(cfg),
@@ -495,6 +610,7 @@ def run_music_gan_training(cfg: MusicGanTrainerConfig) -> Dict[str, object]:
         "final_metrics": history[-1] if history else {},
         "history": history,
         "label_to_id": label_encoder.label_to_id,
+        "control_schema": control_schema.to_dict(),
         "artifacts": {
             "output_dir": str(out_dir),
             "best_checkpoint": str((ckpt_dir / "best_model.pt").as_posix()),

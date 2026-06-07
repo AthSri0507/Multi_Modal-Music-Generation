@@ -63,3 +63,4 @@ notebooks/
 .coverage
 artifacts/
 data/
+checkpoints/

@@ -39,6 +39,37 @@ class MidiPostprocessor:
         )
         self.converter = MidiSequenceConverter(self.repr_config)
 
+    @staticmethod
+    def _instrument_programs(instrumentation: str) -> list[int]:
+        key = (instrumentation or "ensemble").strip().lower()
+        if key == "solo_piano":
+            return [0]  # Acoustic Grand Piano
+        if key in {"guitar", "acoustic_guitar", "steel_guitar", "guitar_trio"}:
+            return [25, 24, 33]  # Steel Guitar, Nylon Guitar, Fingered Bass
+        if key == "jazz_combo":
+            return [32, 25, 65]  # Acoustic Bass, Steel Guitar, Alto Sax
+        if key == "strings":
+            return [42, 40]  # Cello, Violin
+        if key == "synth_pad":
+            return [88, 81]  # Pad 1 (new age), Lead 2 (sawtooth)
+        # ensemble / fallback
+        return [25, 48, 40]  # Steel Guitar, Strings Ensemble, Violin
+
+    @staticmethod
+    def _pick_track_index(pitch: int, n_tracks: int) -> int:
+        if n_tracks <= 1:
+            return 0
+        if n_tracks == 2:
+            return 0 if pitch < 64 else 1
+        if n_tracks == 3:
+            if pitch < 52:
+                return 0
+            if pitch < 74:
+                return 1
+            return 2
+        bucket = int(np.clip((pitch / 128.0) * n_tracks, 0, n_tracks - 1))
+        return bucket
+
     def vector_to_clean_events(self, vector: np.ndarray) -> np.ndarray:
         """Convert generated vector to cleaned events in natural MIDI ranges."""
         events = self.converter.vector_to_events(vector, remove_padding=True)
@@ -78,7 +109,13 @@ class MidiPostprocessor:
 
         return cleaned
 
-    def write_midi(self, events: np.ndarray, out_path: str | Path, tempo_bpm: float = 120.0) -> None:
+    def write_midi(
+        self,
+        events: np.ndarray,
+        out_path: str | Path,
+        tempo_bpm: float = 120.0,
+        instrumentation: str = "ensemble",
+    ) -> None:
         """Write cleaned events to MIDI file (pretty_midi backend)."""
         try:
             import pretty_midi  # type: ignore
@@ -89,7 +126,8 @@ class MidiPostprocessor:
         out.parent.mkdir(parents=True, exist_ok=True)
 
         pm = pretty_midi.PrettyMIDI(initial_tempo=float(max(30.0, tempo_bpm)))
-        instrument = pretty_midi.Instrument(program=0)
+        programs = self._instrument_programs(instrumentation)
+        instruments = [pretty_midi.Instrument(program=int(program)) for program in programs]
 
         sec_per_beat = 60.0 / float(max(1e-6, tempo_bpm))
         current_time = 0.0
@@ -102,9 +140,12 @@ class MidiPostprocessor:
             current_time += delta_beats * sec_per_beat
             end_time = current_time + duration_beats * sec_per_beat
             note = pretty_midi.Note(velocity=velocity, pitch=pitch, start=current_time, end=end_time)
-            instrument.notes.append(note)
+            track_idx = self._pick_track_index(pitch, len(instruments))
+            instruments[track_idx].notes.append(note)
 
-        pm.instruments.append(instrument)
+        for inst in instruments:
+            if inst.notes:
+                pm.instruments.append(inst)
         pm.write(str(out))
 
     def vectors_to_midi_batch(
@@ -113,6 +154,7 @@ class MidiPostprocessor:
         out_dir: str | Path,
         file_prefix: str,
         tempo_bpm: float = 120.0,
+        instrumentation: str = "ensemble",
     ) -> list[str]:
         """Convert a batch of vectors to MIDI files and return file paths."""
         out = Path(out_dir)
@@ -122,6 +164,6 @@ class MidiPostprocessor:
         for i, vec in enumerate(vectors):
             events = self.vector_to_clean_events(vec)
             midi_path = out / f"{file_prefix}_{i:04d}.mid"
-            self.write_midi(events, midi_path, tempo_bpm=tempo_bpm)
+            self.write_midi(events, midi_path, tempo_bpm=tempo_bpm, instrumentation=instrumentation)
             paths.append(str(midi_path.as_posix()))
         return paths

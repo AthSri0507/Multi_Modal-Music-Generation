@@ -20,6 +20,10 @@ pymongo>=4.0.0
 # Big Data Processing 
 pyspark>=3.2.0
 
+# Delta Lake storage (Hadoop-free Python writer/reader)
+deltalake>=0.25.0
+pyarrow>=16.0.0
+
 # Audio Processing (for future model stages)
 librosa>=0.9.0
 essentia>=2.1.0
