@@ -235,8 +235,10 @@ EMOTION_INSTRUMENTATION_JSON = PROCESSED_DATA_DIR / "emotion_instrumentation.jso
 # MILESTONE 4 (v2): Text-to-Audio Generation (MusicGen)
 # ============================================================================
 
-# Pretrained instrumental text-to-music model (no vocals/lyrics). CPU-friendly.
-MUSICGEN_MODEL_NAME = "facebook/musicgen-small"
+# Pretrained instrumental text-to-music model (no vocals/lyrics). Defaults to the
+# CPU-friendly small model; override with MUSICGEN_MODEL_NAME=facebook/musicgen-medium
+# (or -large) on a GPU host for much higher fidelity + long-clip coherence.
+MUSICGEN_MODEL_NAME = os.environ.get("MUSICGEN_MODEL_NAME", "facebook/musicgen-small")
 MUSICGEN_SAMPLE_RATE = 32000  # overridden at runtime by the model config
 MUSICGEN_DEFAULT_DURATION_S = 10.0
 MUSICGEN_MIN_DURATION_S = 2.0
