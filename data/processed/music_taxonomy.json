@@ -1,0 +1,524 @@
+{
+  "genres": {
+    "lofi": {
+      "name": "lofi",
+      "display": "lo-fi hip-hop",
+      "instruments": [
+        "mellow electric piano",
+        "boom-bap drums",
+        "warm sub bass",
+        "vinyl crackle"
+      ],
+      "atmosphere": "warm, nostalgic and hazy",
+      "tempo_bpm": [
+        60,
+        90
+      ],
+      "dynamics": "soft, relaxed dynamics",
+      "descriptors": [
+        "chill",
+        "dusty",
+        "laid-back",
+        "downtempo"
+      ],
+      "keywords": [
+        "lofi",
+        "lo-fi",
+        "lo fi",
+        "lofi hip hop",
+        "chillhop",
+        "study beats",
+        "chill beats"
+      ]
+    },
+    "cinematic": {
+      "name": "cinematic",
+      "display": "cinematic film score",
+      "instruments": [
+        "epic orchestral strings",
+        "low brass",
+        "timpani",
+        "french horns",
+        "taiko drums"
+      ],
+      "atmosphere": "epic, dramatic and sweeping",
+      "tempo_bpm": [
+        90,
+        140
+      ],
+      "dynamics": "powerful, building dynamics",
+      "descriptors": [
+        "trailer",
+        "heroic",
+        "soaring",
+        "orchestral"
+      ],
+      "keywords": [
+        "cinematic",
+        "film score",
+        "soundtrack",
+        "trailer",
+        "epic",
+        "battle",
+        "movie",
+        "score"
+      ]
+    },
+    "orchestral": {
+      "name": "orchestral",
+      "display": "classical orchestra",
+      "instruments": [
+        "full string section",
+        "woodwinds",
+        "brass",
+        "orchestral percussion",
+        "harp"
+      ],
+      "atmosphere": "grand and refined",
+      "tempo_bpm": [
+        70,
+        130
+      ],
+      "dynamics": "wide orchestral dynamics",
+      "descriptors": [
+        "symphonic",
+        "majestic",
+        "elegant"
+      ],
+      "keywords": [
+        "orchestral",
+        "orchestra",
+        "symphony",
+        "symphonic",
+        "classical orchestra"
+      ]
+    },
+    "jazz": {
+      "name": "jazz",
+      "display": "jazz",
+      "instruments": [
+        "piano",
+        "upright bass",
+        "brushed drums",
+        "muted trumpet",
+        "saxophone"
+      ],
+      "atmosphere": "warm, smoky club",
+      "tempo_bpm": [
+        90,
+        160
+      ],
+      "dynamics": "expressive, swinging dynamics",
+      "descriptors": [
+        "swing",
+        "improvisation",
+        "bluesy",
+        "syncopated"
+      ],
+      "keywords": [
+        "jazz",
+        "swing",
+        "bebop",
+        "trio",
+        "saxophone",
+        "sax",
+        "blues"
+      ]
+    },
+    "ambient": {
+      "name": "ambient",
+      "display": "ambient",
+      "instruments": [
+        "lush synth pads",
+        "evolving drones",
+        "soft textures",
+        "distant piano"
+      ],
+      "atmosphere": "ethereal, spacious and weightless",
+      "tempo_bpm": [
+        50,
+        80
+      ],
+      "dynamics": "gentle, sustained dynamics",
+      "descriptors": [
+        "atmospheric",
+        "dreamy",
+        "floating",
+        "minimal"
+      ],
+      "keywords": [
+        "ambient",
+        "drone",
+        "atmospheric",
+        "soundscape",
+        "pads",
+        "textural"
+      ]
+    },
+    "classical": {
+      "name": "classical",
+      "display": "classical",
+      "instruments": [
+        "solo piano",
+        "string quartet",
+        "chamber strings"
+      ],
+      "atmosphere": "intimate and expressive",
+      "tempo_bpm": [
+        60,
+        120
+      ],
+      "dynamics": "nuanced classical dynamics",
+      "descriptors": [
+        "baroque",
+        "romantic",
+        "graceful"
+      ],
+      "keywords": [
+        "classical",
+        "baroque",
+        "romantic era",
+        "chamber",
+        "string quartet",
+        "sonata"
+      ]
+    },
+    "electronic": {
+      "name": "electronic",
+      "display": "electronic",
+      "instruments": [
+        "analog synths",
+        "punchy electronic drums",
+        "bass synth",
+        "arpeggios"
+      ],
+      "atmosphere": "energetic and modern",
+      "tempo_bpm": [
+        110,
+        140
+      ],
+      "dynamics": "tight, driving dynamics",
+      "descriptors": [
+        "synth",
+        "pulsing",
+        "club"
+      ],
+      "keywords": [
+        "electronic",
+        "edm",
+        "techno",
+        "house",
+        "synth",
+        "dance",
+        "club"
+      ]
+    },
+    "synthwave": {
+      "name": "synthwave",
+      "display": "synthwave / retrowave",
+      "instruments": [
+        "retro analog synths",
+        "gated drums",
+        "fm bass",
+        "neon arpeggios"
+      ],
+      "atmosphere": "neon-lit, retro-futuristic",
+      "tempo_bpm": [
+        80,
+        118
+      ],
+      "dynamics": "steady, nostalgic dynamics",
+      "descriptors": [
+        "retro",
+        "80s",
+        "outrun",
+        "neon"
+      ],
+      "keywords": [
+        "synthwave",
+        "retrowave",
+        "outrun",
+        "80s",
+        "vaporwave",
+        "retro synth"
+      ]
+    },
+    "rock": {
+      "name": "rock",
+      "display": "rock",
+      "instruments": [
+        "electric guitars",
+        "driving drums",
+        "bass guitar"
+      ],
+      "atmosphere": "raw and energetic",
+      "tempo_bpm": [
+        110,
+        160
+      ],
+      "dynamics": "loud, punchy dynamics",
+      "descriptors": [
+        "distorted",
+        "anthemic",
+        "gritty"
+      ],
+      "keywords": [
+        "rock",
+        "guitar riff",
+        "metal",
+        "punk",
+        "grunge"
+      ]
+    },
+    "acoustic": {
+      "name": "acoustic",
+      "display": "acoustic / folk",
+      "instruments": [
+        "acoustic guitar",
+        "soft strings",
+        "light percussion",
+        "piano"
+      ],
+      "atmosphere": "warm and organic",
+      "tempo_bpm": [
+        80,
+        120
+      ],
+      "dynamics": "gentle, natural dynamics",
+      "descriptors": [
+        "folk",
+        "earthy",
+        "heartfelt"
+      ],
+      "keywords": [
+        "acoustic",
+        "folk",
+        "singer-songwriter",
+        "unplugged"
+      ]
+    },
+    "piano": {
+      "name": "piano",
+      "display": "solo piano",
+      "instruments": [
+        "expressive solo piano"
+      ],
+      "atmosphere": "intimate and reflective",
+      "tempo_bpm": [
+        60,
+        110
+      ],
+      "dynamics": "delicate, expressive dynamics",
+      "descriptors": [
+        "minimalist",
+        "emotive",
+        "contemplative"
+      ],
+      "keywords": [
+        "solo piano",
+        "piano only",
+        "just piano",
+        "piano solo"
+      ]
+    },
+    "world": {
+      "name": "world",
+      "display": "world / cinematic ethnic",
+      "instruments": [
+        "ethnic flutes",
+        "hand percussion",
+        "strings",
+        "plucked instruments"
+      ],
+      "atmosphere": "exotic and evocative",
+      "tempo_bpm": [
+        80,
+        130
+      ],
+      "dynamics": "dynamic, rhythmic",
+      "descriptors": [
+        "ethnic",
+        "tribal",
+        "folkloric"
+      ],
+      "keywords": [
+        "world music",
+        "ethnic",
+        "tribal",
+        "celtic",
+        "oriental",
+        "middle eastern"
+      ]
+    }
+  },
+  "purposes": {
+    "study": {
+      "name": "study",
+      "display": "study / focus",
+      "modifiers": [
+        "low distraction",
+        "steady and repetitive",
+        "no sudden changes",
+        "background-friendly"
+      ],
+      "keywords": [
+        "study",
+        "focus",
+        "concentration",
+        "work",
+        "reading",
+        "coding"
+      ],
+      "energy": "low",
+      "complexity": "minimal"
+    },
+    "meditation": {
+      "name": "meditation",
+      "display": "meditation",
+      "modifiers": [
+        "minimal percussion",
+        "very slow",
+        "long sustained notes",
+        "calming"
+      ],
+      "keywords": [
+        "meditation",
+        "meditate",
+        "mindfulness",
+        "yoga",
+        "zen",
+        "spa"
+      ],
+      "energy": "low",
+      "complexity": "minimal"
+    },
+    "sleep": {
+      "name": "sleep",
+      "display": "sleep",
+      "modifiers": [
+        "extremely gentle",
+        "no percussion",
+        "soft and slow",
+        "soothing"
+      ],
+      "keywords": [
+        "sleep",
+        "bedtime",
+        "lullaby",
+        "insomnia",
+        "deep sleep"
+      ],
+      "energy": "low",
+      "complexity": "minimal"
+    },
+    "relaxation": {
+      "name": "relaxation",
+      "display": "relaxation",
+      "modifiers": [
+        "soothing",
+        "unhurried",
+        "warm and pleasant"
+      ],
+      "keywords": [
+        "relax",
+        "relaxation",
+        "calm down",
+        "unwind",
+        "chill out"
+      ],
+      "energy": "low",
+      "complexity": "moderate"
+    },
+    "workout": {
+      "name": "workout",
+      "display": "workout / energy",
+      "modifiers": [
+        "high energy",
+        "strong steady beat",
+        "motivating",
+        "driving"
+      ],
+      "keywords": [
+        "workout",
+        "gym",
+        "running",
+        "exercise",
+        "training",
+        "cardio",
+        "hype"
+      ],
+      "energy": "high",
+      "complexity": "moderate"
+    },
+    "gaming": {
+      "name": "gaming",
+      "display": "gaming",
+      "modifiers": [
+        "immersive",
+        "looping",
+        "adventurous"
+      ],
+      "keywords": [
+        "gaming",
+        "game",
+        "video game",
+        "rpg",
+        "boss fight",
+        "8-bit"
+      ],
+      "energy": "high",
+      "complexity": "rich"
+    },
+    "background": {
+      "name": "background",
+      "display": "background",
+      "modifiers": [
+        "unobtrusive",
+        "pleasant",
+        "easy listening"
+      ],
+      "keywords": [
+        "background",
+        "ambience",
+        "cafe",
+        "lobby",
+        "waiting"
+      ],
+      "energy": "low",
+      "complexity": "moderate"
+    },
+    "party": {
+      "name": "party",
+      "display": "party",
+      "modifiers": [
+        "upbeat",
+        "danceable",
+        "fun"
+      ],
+      "keywords": [
+        "party",
+        "celebration",
+        "dance floor",
+        "festive"
+      ],
+      "energy": "high",
+      "complexity": "rich"
+    }
+  },
+  "atmospheres": [
+    "warm",
+    "dark",
+    "dreamy",
+    "ethereal",
+    "nostalgic",
+    "epic",
+    "intimate",
+    "tense",
+    "bright",
+    "melancholic",
+    "mysterious",
+    "uplifting",
+    "serene",
+    "triumphant"
+  ]
+}

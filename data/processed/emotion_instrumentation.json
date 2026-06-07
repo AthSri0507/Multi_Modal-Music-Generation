@@ -1,0 +1,32 @@
+{
+  "calm": [
+    "acoustic piano",
+    "warm strings",
+    "cello",
+    "ambient pads",
+    "soft choir pad"
+  ],
+  "happy": [
+    "electric piano",
+    "synth pad",
+    "warm strings",
+    "drum kit"
+  ],
+  "romantic": [
+    "electric piano",
+    "synth pad",
+    "warm strings"
+  ],
+  "sad": [
+    "electric piano",
+    "synth pad",
+    "warm strings",
+    "drum kit"
+  ],
+  "tense": [
+    "electric piano",
+    "synth pad",
+    "warm strings",
+    "drum kit"
+  ]
+}

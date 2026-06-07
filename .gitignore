@@ -53,6 +53,9 @@ Thumbs.db
 frontend/node_modules/
 frontend/dist/
 
+# Stray nested clone accidentally created by running the Colab notebook locally
+/deploy/repo/
+
 # Big data warehouse / Hive metastore / Windows Hadoop (winutils) binaries
 warehouse/
 metastore_db/
