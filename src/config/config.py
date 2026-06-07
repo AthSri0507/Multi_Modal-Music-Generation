@@ -210,6 +210,72 @@ SPARK_EXECUTOR_MEMORY = "4g"
 SPARK_DRIVER_MEMORY = "2g"
 
 # ============================================================================
+# Big Data Warehouse: Spark + Hive (+ optional HDFS)
+# ============================================================================
+
+# Database / managed-table namespace inside the Hive metastore.
+HIVE_DB_NAME = "music"
+
+# Embedded Hive metastore (Derby) + warehouse directory. The warehouse can be
+# pointed at HDFS by setting HDFS_BASE_URI; otherwise it lives on the local FS.
+WAREHOUSE_DIR = PROJECT_ROOT / "warehouse"
+HIVE_WAREHOUSE_DIR = WAREHOUSE_DIR / "hive"
+HIVE_METASTORE_DIR = WAREHOUSE_DIR / "metastore_db"
+
+# Optional HDFS base URI (e.g. "hdfs://localhost:9000/music"). When set, the Hive
+# warehouse and generated-audio artifacts are stored under HDFS instead of local FS.
+# Read from env so the Docker cluster path can be enabled without code changes.
+HDFS_BASE_URI = os.environ.get("HDFS_BASE_URI", "").strip() or None
+
+# Data-driven mapping artifacts produced by scripts/bd_build_emotion_profiles.py
+EMOTION_PROFILES_JSON = PROCESSED_DATA_DIR / "emotion_music_profiles.json"
+EMOTION_INSTRUMENTATION_JSON = PROCESSED_DATA_DIR / "emotion_instrumentation.json"
+
+# ============================================================================
+# MILESTONE 4 (v2): Text-to-Audio Generation (MusicGen)
+# ============================================================================
+
+# Pretrained instrumental text-to-music model (no vocals/lyrics). CPU-friendly.
+MUSICGEN_MODEL_NAME = "facebook/musicgen-small"
+MUSICGEN_SAMPLE_RATE = 32000  # overridden at runtime by the model config
+MUSICGEN_DEFAULT_DURATION_S = 10.0
+MUSICGEN_MIN_DURATION_S = 2.0
+MUSICGEN_MAX_DURATION_S = 60.0
+# MusicGen EnCodec frame rate: ~50 audio tokens per second of output.
+MUSICGEN_TOKENS_PER_SECOND = 50
+
+# Inference speed / quality knobs (CPU).
+# guidance_scale > 1 enables classifier-free guidance, which DOUBLES compute per
+# step (runs the model conditionally + unconditionally). Lower = faster, less
+# prompt adherence. "fast" mode forces 1.0 + int8 quantization + bf16 autocast.
+MUSICGEN_GUIDANCE_SCALE = 3.0
+MUSICGEN_FAST_GUIDANCE_SCALE = 1.0
+
+# Sampling defaults (passed to MusicGen .generate). top_k=250/temperature=1.0 are
+# the model's recommended values; presets may override these.
+MUSICGEN_TEMPERATURE = 1.0
+MUSICGEN_TOP_K = 250
+MUSICGEN_TOP_P = 0.0  # 0 = disabled (use top_k)
+
+# Default generation preset (see src/music_generation/presets.py).
+MUSICGEN_DEFAULT_PRESET = "balanced"
+
+# Music-style taxonomy catalog exported by scripts/bd_build_taxonomy.py (Hive ->
+# JSON). The runtime overlays this on the built-in defaults in taxonomy.py.
+MUSIC_TAXONOMY_JSON = PROCESSED_DATA_DIR / "music_taxonomy.json"
+
+# Rendered audio output location.
+GENERATED_AUDIO_DIR = PROJECT_ROOT / "artifacts" / "generated_audio"
+
+# Durable append-only generation event log (landing zone). The CLI, API, and Spark
+# batch job append JSONL rows here; bd_generation_analytics.py materializes it into
+# the Hive table `music.generation_logs` and runs Spark SQL analytics over it.
+GENERATION_LOG_JSONL = PROJECT_ROOT / "artifacts" / "generation_logs.jsonl"
+
+# Web gallery: SQLite metadata store for generations browsable in the web UI.
+GALLERY_DB_PATH = PROJECT_ROOT / "artifacts" / "gallery.db"
+
+# ============================================================================
 # Database Configuration (MongoDB local)
 # ============================================================================
 

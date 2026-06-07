@@ -1,0 +1,19 @@
+# Slim dependency set for the web app / Hugging Face Space (serving only).
+# The Spark/Hive/HDFS analytics + emotion mining run OFFLINE on your machine;
+# the Space only needs to extract controls, build prompts, and run MusicGen.
+#
+# On Linux, `pip install torch` pulls a CUDA-enabled build, so the same image
+# uses the GPU on a GPU Space and falls back to CPU otherwise.
+torch>=2.1
+transformers>=4.31
+sentencepiece>=0.1.99   # MusicGen text (T5) tokenizer
+protobuf>=3.20          # required by the T5 tokenizer
+soundfile>=0.12.0
+numpy>=1.21.0
+librosa>=0.10.0          # candidate scorer Stage-1 spectral gate (recommended)
+fastapi>=0.110.0
+uvicorn>=0.29.0
+python-multipart>=0.0.9
+# Optional Stage-2 CLAP ranking (text<->audio adherence). Enable with
+# MUSICGEN_USE_CLAP=1. transformers already provides ClapModel; no extra install
+# needed, but the laion/clap weights (~2GB) download on first use.

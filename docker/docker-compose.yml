@@ -1,0 +1,79 @@
+# Optional "real cluster" big-data stack: HDFS + Hive Metastore + Spark.
+#
+# This is the stretch alternative to the default embedded Spark+Hive path (which
+# runs on the host with winutils). Use it when you want genuine HDFS storage and a
+# standalone Hive Metastore.
+#
+#   docker compose -f docker/docker-compose.yml up -d
+#
+# Then point the app at HDFS and run the jobs against the cluster:
+#   $env:HDFS_BASE_URI = "hdfs://localhost:9000/music"   # PowerShell
+#   $env:SPARK_MASTER  = "spark://localhost:7077"
+#   python scripts/bd_build_spotify_warehouse.py
+#
+# Images are the widely used Big Data Europe (bde2020) builds. This compose is
+# provided as a starting point and is NOT exercised by the host test suite.
+
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    environment:
+      - CLUSTER_NAME=music
+    env_file:
+      - ./hadoop.env
+    ports:
+      - "9870:9870"   # HDFS web UI
+      - "9000:9000"   # HDFS RPC
+    volumes:
+      - namenode:/hadoop/dfs/name
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    depends_on:
+      - namenode
+    env_file:
+      - ./hadoop.env
+    volumes:
+      - datanode:/hadoop/dfs/data
+
+  hive-metastore-db:
+    image: postgres:13
+    environment:
+      - POSTGRES_DB=metastore
+      - POSTGRES_USER=hive
+      - POSTGRES_PASSWORD=hive
+    volumes:
+      - metastore_db:/var/lib/postgresql/data
+
+  hive-metastore:
+    image: bde2020/hive:2.3.2-postgresql-metastore
+    depends_on:
+      - hive-metastore-db
+      - namenode
+    env_file:
+      - ./hadoop.env
+    environment:
+      - HIVE_CORE_CONF_javax_jdo_option_ConnectionURL=jdbc:postgresql://hive-metastore-db/metastore
+    command: /opt/hive/bin/hive --service metastore
+    ports:
+      - "9083:9083"   # Thrift metastore
+
+  spark-master:
+    image: bde2020/spark-master:3.3.0-hadoop3.3
+    depends_on:
+      - namenode
+    ports:
+      - "8080:8080"   # Spark master UI
+      - "7077:7077"   # Spark master RPC
+
+  spark-worker:
+    image: bde2020/spark-worker:3.3.0-hadoop3.3
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MASTER=spark://spark-master:7077
+
+volumes:
+  namenode:
+  datanode:
+  metastore_db:

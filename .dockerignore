@@ -1,0 +1,24 @@
+.git
+.venv
+venv
+**/__pycache__
+**/*.pyc
+frontend/node_modules
+frontend/dist
+warehouse
+metastore_db
+derby.log
+spark-warehouse
+hadoop
+checkpoints
+logs
+notebooks
+tests
+artifacts/generated_audio
+artifacts/_*
+data/raw
+# Keep data/processed/*.json (data-grounding); exclude the heavy raw tables.
+data/processed/*.csv
+data/processed/*.parquet
+data/processed/*.h5
+data/processed/*_delta

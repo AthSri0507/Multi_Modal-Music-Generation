@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/*
+  Design tokens (Impeccable principles):
+  - OKLCH throughout for perceptually even color.
+  - Neutrals are tinted toward violet (never pure gray/black).
+  - Distinctive type pairing: Space Grotesk (display) + Instrument Sans (text).
+*/
+@theme {
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif;
+
+  /* Tinted neutral ramp (violet-leaning) */
+  --color-bg: oklch(0.16 0.018 287);
+  --color-bg-2: oklch(0.19 0.02 287);
+  --color-surface: oklch(0.22 0.022 287);
+  --color-surface-2: oklch(0.26 0.026 287);
+  --color-border: oklch(0.33 0.03 287);
+  --color-text: oklch(0.96 0.008 287);
+  --color-muted: oklch(0.74 0.02 287);
+  --color-faint: oklch(0.58 0.02 287);
+
+  /* Brand accent + supporting hue */
+  --color-accent: oklch(0.74 0.17 305);
+  --color-accent-strong: oklch(0.68 0.19 305);
+  --color-accent-fg: oklch(0.17 0.03 305);
+  --color-cyan: oklch(0.82 0.13 200);
+
+  /* Mood hues */
+  --color-mood-happy: oklch(0.83 0.15 85);
+  --color-mood-calm: oklch(0.82 0.1 195);
+  --color-mood-sad: oklch(0.72 0.12 255);
+  --color-mood-tense: oklch(0.68 0.19 25);
+  --color-mood-romantic: oklch(0.78 0.14 350);
+  --color-mood-neutral: oklch(0.75 0.03 287);
+
+  --radius-card: 1.25rem;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+  body {
+    margin: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+  /* Clear, consistent focus rings everywhere (accessibility). */
+  :where(button, a, input, textarea, [tabindex]):focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+  /* Respect reduced-motion: disable non-essential animation. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  /* Ambient aurora backdrop for the hero. */
+  .aurora {
+    background:
+      radial-gradient(60% 60% at 15% 10%, oklch(0.74 0.17 305 / 0.18), transparent 70%),
+      radial-gradient(55% 55% at 90% 0%, oklch(0.82 0.13 200 / 0.14), transparent 70%),
+      radial-gradient(50% 50% at 60% 100%, oklch(0.78 0.14 350 / 0.10), transparent 70%);
+  }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-rise { animation: rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  @keyframes bars {
+    0%, 100% { transform: scaleY(0.35); }
+    50% { transform: scaleY(1); }
+  }
+  .eq-bar { transform-origin: bottom; animation: bars 1s ease-in-out infinite; }
+}
