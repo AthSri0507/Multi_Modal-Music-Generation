@@ -22,6 +22,8 @@ export interface Track {
   audio_url: string;
   latency_s?: number;
   num_candidates?: number;
+  trimmed?: boolean;
+  clean_seconds?: number | null;
   analysis?: Record<string, unknown> | null;
 }
 

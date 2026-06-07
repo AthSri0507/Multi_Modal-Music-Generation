@@ -20,14 +20,20 @@ from typing import List, Optional, Sequence
 
 import numpy as np
 
+from src.config.config import MUSICGEN_MIN_CLEAN_S, MUSICGEN_NOISE_FLATNESS
+
 
 @dataclass
 class CandidateScore:
     index: int
     spectral_score: float          # higher = more musical / less noisy
-    flatness: float
+    flatness: float                # whole-clip mean flatness
     rms: float
     passed_gate: bool
+    spectral_flatness_slope: float = 0.0   # +ve = rotting toward noise over time
+    tail_flatness: float = 0.0             # mean flatness of the last ~30%
+    clean_seconds: float = 0.0             # time before noise onset (else full dur)
+    degrades: bool = False
     clap_score: Optional[float] = None
     final_score: float = 0.0
     notes: List[str] = field(default_factory=list)
@@ -61,18 +67,83 @@ def _spectral_metrics(wav: np.ndarray, sr: int) -> tuple[float, float, float]:
         return flatness, rms, contrast
 
 
-def _stage1_score(flatness: float, rms: float, contrast: float) -> float:
-    """Higher = more tonal/structured. Penalise flat (noisy) spectra + near silence.
+def windowed_flatness(wav: np.ndarray, sr: int, win_s: float = 1.0) -> tuple[np.ndarray, np.ndarray]:
+    """Per-window spectral flatness over time → (window_start_times, flatness)."""
+    wav = np.asarray(wav, dtype=np.float32)
+    n = max(1, int(win_s * sr))
+    if wav.size < n * 2:  # too short to window meaningfully
+        fl, _, _ = _spectral_metrics(wav, sr)
+        return np.array([0.0]), np.array([fl])
+    times, flats = [], []
+    for start in range(0, wav.size - n + 1, n):
+        fl, _, _ = _spectral_metrics(wav[start : start + n], sr)
+        times.append(start / sr)
+        flats.append(fl)
+    return np.asarray(times, dtype=np.float64), np.asarray(flats, dtype=np.float64)
 
-    Empirically, clean MusicGen takes sit around flatness 0.0001–0.015 while noisy /
-    degenerate takes sit around 0.05–0.15 — far below pure white noise (~1.0). So we
-    make the tonal term steep in that low range (``flatness * 12`` saturates by ~0.08)
-    to strongly prefer the cleanest candidate of the batch.
+
+def flatness_slope(times: np.ndarray, flats: np.ndarray) -> float:
+    """Least-squares slope of flatness vs time. +ve = degrading toward noise."""
+    if times.size < 2:
+        return 0.0
+    return float(np.polyfit(times, flats, 1)[0])
+
+
+def clean_seconds(times: np.ndarray, flats: np.ndarray, total_dur: float,
+                  threshold: float = MUSICGEN_NOISE_FLATNESS) -> float:
+    """First time the clip sustainedly crosses the noise threshold (else full dur)."""
+    if times.size == 0:
+        return total_dur
+    for i in range(flats.size):
+        if flats[i] > threshold and (i + 1 >= flats.size or flats[i + 1] > threshold * 0.7):
+            return float(times[i])
+    return float(total_dur)
+
+
+def trim_trailing_noise(
+    wav: np.ndarray,
+    sr: int,
+    threshold: float = MUSICGEN_NOISE_FLATNESS,
+    min_clean_s: float = MUSICGEN_MIN_CLEAN_S,
+) -> tuple[np.ndarray, float, bool]:
+    """Cut a noisy tail off a clip. Returns (wav, new_duration_s, trimmed?).
+
+    Finds where windowed flatness sustainedly crosses ``threshold`` and trims there,
+    with a short fade-out. Never trims below ``min_clean_s`` (if noise starts earlier,
+    keep the full clip and let the caller flag it).
+    """
+    wav = np.asarray(wav, dtype=np.float32)
+    total = float(wav.size / sr) if sr else 0.0
+    if total <= min_clean_s:
+        return wav, total, False
+    times, flats = windowed_flatness(wav, sr)
+    cut = clean_seconds(times, flats, total, threshold)
+    if cut >= total - 0.5:  # no meaningful noisy tail
+        return wav, total, False
+    cut = max(cut, min_clean_s)
+    if cut >= total - 0.5:
+        return wav, total, False
+    n = int(cut * sr)
+    trimmed = wav[:n].copy()
+    fade = min(int(0.05 * sr), trimmed.size)  # 50 ms fade-out to avoid a click
+    if fade > 1:
+        trimmed[-fade:] *= np.linspace(1.0, 0.0, fade, dtype=np.float32)
+    return trimmed, float(trimmed.size / sr), True
+
+
+def _stage1_score(flatness: float, rms: float, contrast: float, slope: float = 0.0) -> float:
+    """Higher = more tonal/structured AND stable over time.
+
+    Clean MusicGen takes sit around flatness 0.0001–0.015 while noisy/degenerate takes
+    sit around 0.05–0.15. A *rising* flatness slope (~0.01/s) means the take is rotting
+    mid-clip even if its head is clean — so we add a stability term: slope ~0.01/s
+    fully penalises, ~0.001/s (steady) does not.
     """
     tonal = 1.0 - min(1.0, flatness * 12.0)       # flatness ~0.08+ -> treated as noisy
+    stability = 1.0 - min(1.0, max(0.0, slope) * 100.0)  # slope 0.01/s -> 0
     loud_ok = min(1.0, rms / 0.06)                # very quiet -> low score
     structure = min(1.0, max(0.0, contrast / 20.0))
-    return float(0.7 * tonal + 0.15 * loud_ok + 0.15 * structure)
+    return float(0.45 * tonal + 0.35 * stability + 0.1 * loud_ok + 0.1 * structure)
 
 
 # ---------------------------------------------------------------------------
@@ -134,15 +205,25 @@ def score_candidates(
     """Score each candidate through the two-stage pipeline."""
     scores: List[CandidateScore] = []
     for i, wav in enumerate(waveforms):
+        wav = np.asarray(wav, dtype=np.float32)
         flatness, rms, contrast = _spectral_metrics(wav, sample_rate)
-        s1 = _stage1_score(flatness, rms, contrast)
-        # Gate: drop noisy takes (flatness above the clean-music band ~0.02) and
-        # near-silence. Loose enough to keep bright/percussive music, strict enough
-        # to reject the 0.05–0.15 "hiss/noise" takes MusicGen-small sometimes emits.
-        passed = (flatness < 0.06) and (rms > 0.01)
+        total_dur = float(wav.size / sample_rate) if sample_rate else 0.0
+
+        times, win_flats = windowed_flatness(wav, sample_rate)
+        slope = flatness_slope(times, win_flats)
+        tail = float(np.mean(win_flats[max(0, int(len(win_flats) * 0.7)) :])) if win_flats.size else flatness
+        clean_s = clean_seconds(times, win_flats, total_dur)
+        head = float(np.mean(win_flats[: max(1, int(len(win_flats) * 0.3))])) if win_flats.size else flatness
+        degrades = (slope > 0.004) or (tail > MUSICGEN_NOISE_FLATNESS and tail > head * 3)
+
+        s1 = _stage1_score(flatness, rms, contrast, slope=slope)
+        # Gate: drop takes that are noisy overall, near-silent, or noisy by the end.
+        passed = (flatness < 0.06) and (rms > 0.01) and (tail < 0.08)
         scores.append(
             CandidateScore(
                 index=i, spectral_score=s1, flatness=flatness, rms=rms,
+                spectral_flatness_slope=slope, tail_flatness=tail,
+                clean_seconds=clean_s, degrades=degrades,
                 passed_gate=passed, final_score=s1,
                 notes=[] if passed else ["failed spectral gate"],
             )

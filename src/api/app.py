@@ -229,6 +229,8 @@ def generate(req: GenerateRequest) -> dict:
         "preset": result.preset,
         "num_candidates": result.num_candidates,
         "candidate_scores": result.candidate_scores,
+        "trimmed": result.trimmed,
+        "clean_seconds": result.clean_seconds,
         "analysis": (req_obj.to_dict() if req_obj else None),
     }
 

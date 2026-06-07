@@ -20,9 +20,14 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Dict, List, Optional
 
-from src.config.config import MUSICGEN_DEFAULT_DURATION_S
+from src.config.config import (
+    MUSICGEN_AUTOTRIM,
+    MUSICGEN_DEFAULT_DURATION_S,
+    MUSICGEN_STABLE_TEMPERATURE,
+    MUSICGEN_STABLE_TOP_K,
+)
 from src.music_generation.audio_generator import GeneratedAudio, MusicGenAudioGenerator
-from src.music_generation.candidate_scorer import select_best
+from src.music_generation.candidate_scorer import select_best, trim_trailing_noise
 from src.music_generation.control_schema import MusicControlSpec
 from src.music_generation.enhanced_prompt_builder import build as build_enhanced
 from src.music_generation.mood_map import detect_mood, quadrant_to_mood
@@ -113,6 +118,8 @@ class GenerationResult:
     preset: str = "balanced"
     num_candidates: int = 1
     candidate_scores: List[dict] = field(default_factory=list)
+    trimmed: bool = False
+    clean_seconds: Optional[float] = None
 
 
 class TextToMusicPipeline:
@@ -210,14 +217,20 @@ class TextToMusicPipeline:
         n = int(num_candidates) if num_candidates is not None else p.num_candidates
         n = max(1, n)
 
+        # Stability-biased sampling for sparse/low-energy prompts (they drift fastest).
+        temperature, top_k = p.temperature, p.top_k
+        if self._is_sparse(plan.request):
+            temperature = min(temperature, MUSICGEN_STABLE_TEMPERATURE)
+            top_k = min(top_k, MUSICGEN_STABLE_TOP_K)
+
         candidates = self.generator.generate_candidates(
             plan.music_prompt,
             n=n,
             duration_s=plan.duration_s,
             base_seed=seed,
             guidance_scale=p.guidance_scale,
-            temperature=p.temperature,
-            top_k=p.top_k,
+            temperature=temperature,
+            top_k=top_k,
             top_p=p.top_p,
         )
         waves = [c.waveform for c in candidates]
@@ -225,11 +238,24 @@ class TextToMusicPipeline:
             waves, candidates[0].sample_rate, plan.music_prompt, use_clap=self._use_clap
         )
         audio = candidates[best_idx]
+        chosen = next(s for s in scores if s.index == best_idx)
+
+        # Trim a noisy tail off the chosen take so we never ship the drift.
+        trimmed = False
+        clean_s = chosen.clean_seconds
+        if MUSICGEN_AUTOTRIM:
+            new_wav, new_dur, trimmed = trim_trailing_noise(audio.waveform, audio.sample_rate)
+            if trimmed:
+                audio = replace(audio, waveform=new_wav, duration_s=new_dur)
+
         score_dicts = [
             {
                 "index": s.index,
                 "spectral_score": round(s.spectral_score, 4),
                 "flatness": round(s.flatness, 4),
+                "spectral_flatness_slope": round(s.spectral_flatness_slope, 5),
+                "clean_seconds": round(s.clean_seconds, 1),
+                "degrades": s.degrades,
                 "clap_score": (None if s.clap_score is None else round(s.clap_score, 4)),
                 "passed_gate": s.passed_gate,
                 "chosen": s.index == best_idx,
@@ -241,13 +267,23 @@ class TextToMusicPipeline:
             audio=audio,
             spec=plan.spec,
             music_prompt=plan.music_prompt,
-            duration_s=plan.duration_s,
+            duration_s=audio.duration_s,
             raw_prompt=prompt,
             request=plan.request,
             preset=plan.preset,
             num_candidates=n,
             candidate_scores=score_dicts,
+            trimmed=trimmed,
+            clean_seconds=round(clean_s, 1),
         )
+
+    @staticmethod
+    def _is_sparse(request: Optional[MusicRequest]) -> bool:
+        if request is None:
+            return False
+        return request.energy == "low" or request.genre in {
+            "ambient", "cinematic", "classical", "piano", "lofi",
+        }
 
     def generate_to_file(
         self,

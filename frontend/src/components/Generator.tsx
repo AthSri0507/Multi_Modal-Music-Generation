@@ -232,6 +232,13 @@ export function Generator({ device, onGenerated }: { device: string; onGenerated
             <p className="mt-2 leading-relaxed text-[var(--color-muted)]">{result.music_prompt}</p>
           </details>
 
+          {result.trimmed && (
+            <p className="mt-3 font-sans text-xs text-[var(--color-faint)]">
+              Trimmed to {Math.round(result.duration_s ?? 0)}s — the model started drifting toward
+              noise after that. Try a shorter length, or a GPU host for longer clips.
+            </p>
+          )}
+
           <p className="mt-4 font-sans text-xs text-[var(--color-faint)]">Saved to the gallery for everyone to hear.</p>
         </div>
       )}

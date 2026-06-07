@@ -260,6 +260,18 @@ MUSICGEN_TOP_P = 0.0  # 0 = disabled (use top_k)
 # Default generation preset (see src/music_generation/presets.py).
 MUSICGEN_DEFAULT_PRESET = "balanced"
 
+# Mid-clip noise handling. `musicgen-small` drifts toward noise as a clip grows
+# (autoregressive error accumulation); spectral flatness climbs over time. We detect
+# that and trim the noisy tail of the chosen candidate.
+MUSICGEN_NOISE_FLATNESS = 0.05       # per-window flatness above this ~= noise
+MUSICGEN_AUTOTRIM = True             # trim the noisy tail of the delivered clip
+MUSICGEN_MIN_CLEAN_S = 3.0           # never trim a clip shorter than this
+
+# Stability-biased sampling for sparse / low-energy prompts (ambient, cinematic,
+# thriller, ...), which drift fastest. Lower temperature / top_k = less wandering.
+MUSICGEN_STABLE_TEMPERATURE = 0.9
+MUSICGEN_STABLE_TOP_K = 150
+
 # Music-style taxonomy catalog exported by scripts/bd_build_taxonomy.py (Hive ->
 # JSON). The runtime overlays this on the built-in defaults in taxonomy.py.
 MUSIC_TAXONOMY_JSON = PROCESSED_DATA_DIR / "music_taxonomy.json"
